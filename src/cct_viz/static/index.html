@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CCT Viz</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header id="app-header">
+    <h1>CCT Viz</h1>
+    <p class="subtitle">Step through a PGN game and read the Checks / Captures / Threats for the side to move.</p>
+  </header>
+
+  <main id="layout">
+    <section id="left-column">
+      <div id="pgn-panel" class="panel">
+        <div id="pgn-error" class="error-banner" hidden></div>
+
+        <div id="pgn-form">
+          <label for="pgn-input" class="field-label">PGN</label>
+          <textarea id="pgn-input" rows="8" spellcheck="false"
+            placeholder="Paste PGN here, or load the example."></textarea>
+          <div class="button-row">
+            <button id="load-game" type="button">Load game</button>
+            <button id="load-example" type="button">Load example</button>
+            <label class="file-button">
+              Load file
+              <input id="pgn-file" type="file" accept=".pgn,text/plain" hidden>
+            </label>
+          </div>
+          <div id="game-picker-wrap" hidden>
+            <label for="game-picker" class="field-label">Game</label>
+            <select id="game-picker"></select>
+          </div>
+        </div>
+
+        <button id="change-pgn" type="button" hidden>Change PGN</button>
+        <div id="analysing" class="analysing" hidden>Analysing…</div>
+      </div>
+
+      <div id="board-wrap" class="panel">
+        <div id="board" aria-label="chess board"></div>
+        <div id="nav-bar">
+          <button id="nav-start" type="button" title="Start (Home)">|&lt;</button>
+          <button id="nav-prev" type="button" title="Previous (&larr;)">&lt;</button>
+          <span id="nav-counter">ply 0 / 0</span>
+          <button id="nav-next" type="button" title="Next (&rarr;)">&gt;</button>
+          <button id="nav-end" type="button" title="End (End)">&gt;|</button>
+          <button id="nav-flip" type="button" title="Flip board (f)">Flip board</button>
+        </div>
+        <div id="fen-line" class="fen" title="FEN of the current position"></div>
+      </div>
+    </section>
+
+    <section id="right-column">
+      <div id="position-header" class="panel">
+        <span id="position-move">&mdash;</span>
+        <span id="position-turn"></span>
+        <span id="position-status" class="status-flag"></span>
+      </div>
+
+      <div id="cct-panel" class="panel">
+        <div class="cct-section">
+          <h2>Checks <span class="count" id="count-checks">(0)</span></h2>
+          <ul id="list-checks" class="candidate-list"></ul>
+        </div>
+        <div class="cct-section">
+          <h2>Captures <span class="count" id="count-captures">(0)</span></h2>
+          <ul id="list-captures" class="candidate-list"></ul>
+        </div>
+        <div class="cct-section">
+          <h2>Threats <span class="count" id="count-threats">(0)</span></h2>
+          <ul id="list-threats" class="candidate-list"></ul>
+        </div>
+
+        <p id="played-note" class="played-note"></p>
+
+        <p class="disclaimer">
+          Candidate enumeration only &mdash; no engine search. Threats are found by a
+          one-move static scan, so deep tactics (forks two moves away, pins, skewers,
+          zwischenzugs) will be missed.
+        </p>
+      </div>
+
+      <div id="movelist-panel" class="panel">
+        <h2>Moves</h2>
+        <ol id="movelist"></ol>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
