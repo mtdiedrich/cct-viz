@@ -1,0 +1,165 @@
+/* Play Mode styles (play-mode spec section 8).
+ *
+ * Loaded after styles.css, so the board, candidate rows and panels already
+ * inherit the v1 look. This file only adds what Play Mode introduces:
+ * the two-panel layout, the interactive-square highlights, the move grid,
+ * the status bar and the promotion chooser.
+ */
+
+#app-header .subtitle a { color: var(--accent); }
+
+/* ---------- Layout ---------- */
+#play-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 12px 20px 40px;
+  max-width: 1240px;
+}
+
+@media (min-width: 900px) {
+  #play-layout { grid-template-columns: minmax(360px, 520px) 1fr; }
+}
+
+@media (max-width: 899px) {
+  #play-layout { padding-left: 12px; padding-right: 12px; }
+}
+
+/* Grid/flex children must be allowed to shrink below their content width so
+ * the board can scale down instead of forcing a horizontal scrollbar. */
+#play-left, #play-right { min-width: 0; }
+
+/* Override v1's `min(560px, 92vw)`: fill the column, never exceed it. */
+#board { width: min(520px, 100%); }
+
+#play-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---------- Interactive squares ---------- */
+.sq[role="button"] { cursor: pointer; }
+.sq[role="button"]:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
+
+.sq.hl-sel::after,
+.sq.hl-dest::after,
+.sq.hl-check::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.sq.hl-sel::after { background: rgba(64, 130, 255, 0.45); }
+.sq.hl-check::after { background: rgba(255, 60, 60, 0.5); }
+.sq.hl-dest::after {
+  background: radial-gradient(circle at center,
+    rgba(30, 32, 25, 0.35) 0 18%, transparent 20%);
+}
+.sq.hl-dest:has(.piece)::after {
+  background: radial-gradient(circle at center,
+    transparent 0 62%, rgba(30, 32, 25, 0.35) 64% 78%, transparent 80%);
+}
+
+/* ---------- The two CCT panels ---------- */
+.cct-side-panel { position: relative; }
+.cct-side-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cct-side-name { font-size: 15px; }
+.cct-side-role { color: var(--muted); font-weight: 400; letter-spacing: 0; text-transform: none; }
+.cct-badges { margin-left: auto; display: flex; gap: 6px; }
+.cct-badge {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+  background: #f0f1ea;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: var(--muted);
+}
+
+#panel-w.to-move, #panel-b.to-move {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 2px rgba(59, 107, 47, 0.25);
+}
+#panel-w.to-move .cct-side-role, #panel-b.to-move .cct-side-role { color: var(--accent); font-weight: 600; }
+
+.cct-section h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 4px;
+}
+.cct-truncated { font-size: 12px; color: var(--muted); margin: 2px 0 0; }
+.cct-unavailable { font-size: 13px; color: #8a1c1c; margin: 6px 0 0; }
+.cct-empty-dash { font-size: 13px; color: var(--muted); padding: 3px 6px; }
+
+.candidate-list li.playable { cursor: pointer; }
+.candidate-list li.pinned { background: #e0e7ff; }
+
+/* ---------- Move list ---------- */
+#moves {
+  display: grid;
+  grid-template-columns: 2.4em 1fr 1fr;
+  gap: 2px 6px;
+  align-items: baseline;
+  font-size: 13px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+#moves .move-num { color: var(--muted); font-variant-numeric: tabular-nums; }
+#moves .move {
+  cursor: pointer;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+#moves .move:hover { background: #eef0e6; }
+#moves .move.current { background: var(--hl-last); font-weight: 600; }
+#moves .move-gap { visibility: hidden; }
+
+/* ---------- Status bar ---------- */
+#status {
+  position: sticky;
+  bottom: 0;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  padding: 8px 20px;
+  font-size: 13px;
+  color: #33372e;
+}
+
+/* ---------- Promotion chooser ---------- */
+.promo-chooser[hidden] { display: none; }
+.promo-chooser {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+.promo-box {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 200px;
+}
+.promo-box p { margin: 0 0 4px; font-weight: 600; }
+
+#pgn-copy-sink {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  opacity: 0;
+}

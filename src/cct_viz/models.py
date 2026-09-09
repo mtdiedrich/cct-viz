@@ -98,3 +98,56 @@ class GameResponse(BaseModel):
     games: list[GameSummary]
     selected_index: int
     game: AnalysedGame
+
+
+# --------------------------------------------------------------------------- #
+# Play Mode (play-mode spec section 5.2)
+# --------------------------------------------------------------------------- #
+
+
+class SideReport(BaseModel):
+    """CCT for one colour at one position (play-mode spec section 3)."""
+
+    color: Literal["w", "b"]
+    to_move: bool
+    available: bool
+    reason: Optional[str] = None       # "side_to_move_in_check" when unavailable
+    report: Optional[CctReport] = None  # None when unavailable
+
+
+class LegalMove(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    uci: str
+    san: str
+    from_square: str = Field(alias="from")
+    to_square: str = Field(alias="to")
+    promotion: Optional[str] = None    # "q" | "r" | "b" | "n"
+
+
+class PlyNode(BaseModel):
+    """One position in a played line (play-mode spec section 5.3)."""
+
+    index: int                   # 0 = start position
+    move_number: int             # board.fullmove_number
+    turn: Literal["w", "b"]
+    fen: str
+    san: Optional[str] = None    # SAN of the move that LED here; None at index 0
+    uci: Optional[str] = None
+    last_move: Optional[dict] = None   # {"from": "e2", "to": "e4"} or None
+    in_check: bool = False
+    is_checkmate: bool = False
+    is_stalemate: bool = False
+    is_game_over: bool = False
+    over_reason: Optional[str] = None  # section 5.4
+    result: Optional[str] = None       # "1-0" | "0-1" | "1/2-1/2" | None
+    legal_moves: list[LegalMove] = Field(default_factory=list)
+    cct: dict[str, SideReport]         # exactly two keys: "w" and "b"
+
+
+class PlayResponse(BaseModel):
+    start_fen: str
+    moves: list[str]
+    ply_count: int
+    analyse_from: int
+    plies: list[PlyNode]
