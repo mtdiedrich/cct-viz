@@ -80,7 +80,7 @@ Chess pieces are rendered as Unicode glyphs, not images.
 ```
 pyproject.toml
 README.md
-docs/spec/cct-viz-spec.md          <- this file
+docs/spec/0-cct-viz-spec.md        <- this file
 src/cct_viz/__init__.py            <- __version__ = "0.1.0"
 src/cct_viz/__main__.py            <- `python -m cct_viz` starts the server
 src/cct_viz/models.py              <- pydantic models (Section 6)

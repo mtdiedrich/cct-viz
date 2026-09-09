@@ -52,7 +52,7 @@ pytest -q
 ```
 
 The suite in `tests/` is the acceptance suite from
-`docs/spec/cct-viz-spec.md` section 11 (exact SAN lists and gain values for the
+`docs/spec/0-cct-viz-spec.md` section 11 (exact SAN lists and gain values for the
 starting position, `1.e4`, the Scholar's-mate position, and the Opera Game),
 plus board-purity, full-game, and API tests.
 
@@ -114,7 +114,9 @@ src/cct_viz/
   server.py       FastAPI app (API + static frontend)
   static/         index.html, styles.css, app.js, example.pgn
 tests/            acceptance tests
-docs/spec/        the build specification
+docs/spec/        build specifications, numbered in build order
+  0-cct-viz-spec.md    PGN step-through (this app)
+  1-play-mode-spec.md  Play Mode: play both sides, CCT for both colours
 ```
 
 ## API
