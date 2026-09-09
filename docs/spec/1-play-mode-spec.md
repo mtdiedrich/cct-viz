@@ -14,7 +14,8 @@ Section 2 lists what already exists and what you must not break. Read it first.
 If something is genuinely ambiguous, pick the simplest option that satisfies
 Section 11 and note it in `README.md`.
 
-The existing feature is specified in [`cct-viz-spec.md`](./cct-viz-spec.md).
+The existing feature is specified in
+[`0-cct-viz-spec.md`](./0-cct-viz-spec.md).
 References below of the form "v1 §7" point at that document.
 
 ---
