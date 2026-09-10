@@ -45,6 +45,34 @@ Opera Game. Step with the on-screen buttons or the keyboard:
 All stepping is client-side; the whole analysed game arrives in one response
 and navigation never hits the network.
 
+## Play Mode (`/play`)
+
+Open <http://127.0.0.1:8000/play> for the second page. There is no PGN and no
+engine — **you play both sides** on a click-to-move board. After every move, and
+at every position you rewind to, the page shows **two** CCT reports: one for
+White and one for Black. The waiting side's report is the point of the feature:
+what the side that just moved is now threatening is exactly what a player forgets
+to check.
+
+The waiting side's report is produced by pushing a **null move** (same position,
+other side to move) and analysing that. A null move is only legal when the side
+to move is **not in check**, so:
+
+> **If the side to move is in check, the waiting side has no report.**
+> The panel shows *"No plan for {colour} — {other} is to move and in check."*
+> This is also the chess-correct answer: the waiting side cannot plan anything
+> until the check is dealt with. (Without this guard the engine would happily
+> enumerate king captures from the illegal null-move position.)
+
+Extra keys on `/play`: `u` takes back the last move. `New game`, `FEN…` and
+`Copy PGN` are in the toolbar; the game (start FEN + move list) is saved to
+`localStorage` and survives a refresh. `Copy PGN` produces a PGN the `/` page
+can load.
+
+The board and both panels navigate entirely client-side. Playing a move fetches
+exactly one new node (`POST /api/play` with `analyse_from = len(moves)`); a full
+refetch (`analyse_from = 0`) only happens on load, FEN change, or restore.
+
 ## Test
 
 ```bash
@@ -54,7 +82,8 @@ pytest -q
 The suite in `tests/` is the acceptance suite from
 `docs/spec/0-cct-viz-spec.md` section 11 (exact SAN lists and gain values for the
 starting position, `1.e4`, the Scholar's-mate position, and the Opera Game),
-plus board-purity, full-game, and API tests.
+plus board-purity, full-game, and API tests. `tests/test_play.py` is the
+Play Mode acceptance suite from `docs/spec/1-play-mode-spec.md` section 11.
 
 ## The CCT engine (`src/cct_viz/cct.py`)
 
@@ -108,11 +137,13 @@ the UI under the CCT panel.
 pyproject.toml
 src/cct_viz/
   __main__.py     python -m cct_viz
-  models.py       pydantic models
+  models.py       pydantic models (v1 + Play Mode: SideReport, LegalMove, PlyNode)
   cct.py          the CCT engine
   pgn.py          PGN parsing + game analysis
+  play.py         Play Mode: replay a UCI line, analyse both colours
   server.py       FastAPI app (API + static frontend)
   static/         index.html, styles.css, app.js, example.pgn
+                  play.html, play.css, play.js   (the /play page)
 tests/            acceptance tests
 docs/spec/        build specifications, numbered in build order
   0-cct-viz-spec.md    PGN step-through (this app)
@@ -127,10 +158,13 @@ docs/spec/        build specifications, numbered in build order
 | `GET /static/*` | static assets |
 | `GET /api/health` | `{"status": "ok", "version": "0.1.0"}` |
 | `POST /api/game` | `{"pgn": "...", "game_index": 0}` → the fully analysed game |
+| `GET /play` | the Play Mode page |
+| `POST /api/play` | `{"start_fen": null, "moves": ["e2e4", ...], "analyse_from": 0}` → CCT for both colours at each requested position |
 
 Errors are always HTTP 400 with `{"error": {"code": "...", "message": "..."}}`.
 Codes: `PGN_EMPTY`, `PGN_NO_GAMES`, `PGN_PARSE_ERROR`,
-`GAME_INDEX_OUT_OF_RANGE`, `GAME_TOO_LONG`, `UNSUPPORTED_VARIANT`.
+`GAME_INDEX_OUT_OF_RANGE`, `GAME_TOO_LONG`, `UNSUPPORTED_VARIANT`,
+`BAD_FEN`, `MOVES_TOO_LONG`, `BAD_ANALYSE_FROM`, `ILLEGAL_MOVE`.
 
 ## Notes / ambiguities resolved
 
@@ -140,6 +174,17 @@ Codes: `PGN_EMPTY`, `PGN_NO_GAMES`, `PGN_PARSE_ERROR`,
   missing date) when a header is absent.
 * A gain's follow-up SAN is rendered in the hypothetical post-null position, so
   it may carry a `+` (e.g. `Qxe5+`) even though the threat move itself is quiet.
+* Play Mode spec section 11.4 asserts a mid-line `analyse_from` (6, on a 7-move
+  list) returns exactly one node. Sections 4.1 / 5.5 describe the client only
+  ever sending `analyse_from = 0` (full line, tip included) or
+  `analyse_from = len(moves)` (tip only). `build_line` reconciles the two:
+  it analyses every `index >= analyse_from`, but returns the tip
+  (`index == len(moves)`) only on a full refetch or when the tip is the sole
+  requested node — so a mid-line request yields just the "move" positions, as
+  11.4 expects.
+* Play Mode board glyphs and the `hl-last` / `hl-cand-*` / `hl-gain` classes are
+  inherited from `styles.css`; `play.css` only adds `hl-sel`, `hl-dest`,
+  `hl-check` and the two-panel layout.
 * Board glyphs deviate from the spec 9.3 table: both colours use the *filled*
   chess glyphs (U+265A..U+265F) and the white pieces are recoloured white with a
   dark outline in CSS. The thin outline glyphs (U+2654..U+2659) read poorly at
